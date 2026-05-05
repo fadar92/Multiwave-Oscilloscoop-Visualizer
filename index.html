@@ -139,6 +139,28 @@ select.sel:disabled{opacity:.3;}
   </div>
 </div>
 
+<!-- ── Record (above visuals) ─────────────────────────── -->
+<div class="sect-block">
+  <div class="sect-title">Record</div>
+  <div class="sect-body">
+    <div class="row">
+      <button id="btn-rec">● Record</button>
+      <button id="btn-stop" disabled>■ Stop</button>
+      <div class="tgl">
+        <button id="fmt-l" class="active">16:9</button>
+        <button id="fmt-sq">4:5</button>
+        <button id="fmt-p">9:16</button>
+      </div>
+      <div class="sep"></div>
+      <span class="lbl">fade in</span>
+      <input type="number" class="num-in" id="fi-sec" value="0" min="0" max="120" step="0.5" style="width:38px">
+      <span class="lbl">s &nbsp; out</span>
+      <input type="number" class="num-in" id="fo-sec" value="0" min="0" max="120" step="0.5" style="width:38px">
+      <span class="lbl">s</span>
+    </div>
+  </div>
+</div>
+
 <div id="canvas-wrap" class="landscape">
   <canvas id="cv"></canvas>
   <button id="fs-btn">⛶</button>
@@ -153,24 +175,21 @@ select.sel:disabled{opacity:.3;}
 
 <div id="controls">
 
-  <!-- ── Record ─────────────────────────────────────────────── -->
+  <!-- ── Colour ─────────────────────────────────────────────── -->
   <div class="sect-block">
-    <div class="sect-title">Record</div>
+    <div class="sect-title">Colour &amp; Canvas Background</div>
     <div class="sect-body">
       <div class="row">
-        <button id="btn-rec">● Record</button>
-        <button id="btn-stop" disabled>■ Stop</button>
-        <div class="tgl">
-          <button id="fmt-l" class="active">16:9</button>
-          <button id="fmt-sq">4:5</button>
-          <button id="fmt-p">9:16</button>
-        </div>
+        <div class="cpk-wrap"><span class="lbl">A</span><input type="color" class="cpk" id="cpk1" value="#ff2200"></div>
+        <div class="cpk-wrap"><span class="lbl">B</span><input type="color" class="cpk" id="cpk2" value="#00aaff"></div>
+        <div class="cpk-wrap"><span class="lbl">C</span><input type="color" class="cpk" id="cpk3" value="#00ff88"></div>
+        <span class="lbl">A→C</span><input type="range" id="s-bld" min="0" max="100" value="0">
         <div class="sep"></div>
-        <span class="lbl">fade in</span>
-        <input type="number" class="num-in" id="fi-sec" value="0" min="0" max="120" step="0.5" style="width:38px">
-        <span class="lbl">s &nbsp; out</span>
-        <input type="number" class="num-in" id="fo-sec" value="0" min="0" max="120" step="0.5" style="width:38px">
-        <span class="lbl">s</span>
+        <label class="tog-sw" title="Canvas background white (video only)">
+          <input type="checkbox" id="tog-bg">
+          <span class="tog-track"></span>
+          <span class="tog-lbl">white bg</span>
+        </label>
       </div>
     </div>
   </div>
@@ -198,25 +217,6 @@ select.sel:disabled{opacity:.3;}
         <span class="lbl">gravity</span><input type="range" id="s-vert" min="0" max="100" value="50">
         <span class="lbl">spikes</span><input type="range" id="s-spk" min="0" max="100" value="0">
         <span class="lbl">flare speed</span><input type="range" id="s-flr" min="1" max="100" value="25">
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Colour ─────────────────────────────────────────────── -->
-  <div class="sect-block">
-    <div class="sect-title">Colour &amp; Canvas Background</div>
-    <div class="sect-body">
-      <div class="row">
-        <div class="cpk-wrap"><span class="lbl">A</span><input type="color" class="cpk" id="cpk1" value="#ff2200"></div>
-        <div class="cpk-wrap"><span class="lbl">B</span><input type="color" class="cpk" id="cpk2" value="#00aaff"></div>
-        <div class="cpk-wrap"><span class="lbl">C</span><input type="color" class="cpk" id="cpk3" value="#00ff88"></div>
-        <span class="lbl">A→C</span><input type="range" id="s-bld" min="0" max="100" value="0">
-        <div class="sep"></div>
-        <label class="tog-sw" title="Canvas background white (video only)">
-          <input type="checkbox" id="tog-bg">
-          <span class="tog-track"></span>
-          <span class="tog-lbl">white bg</span>
-        </label>
       </div>
     </div>
   </div>
@@ -463,6 +463,76 @@ function blendRgb(a,b,t){return{r:Math.round(a.r+(b.r-a.r)*t),g:Math.round(a.g+(
 function rgbStr(c){return`rgb(${c.r},${c.g},${c.b})`;}
 function rmsArr(arr){let s=0;for(let i=0;i<arr.length;i++){const v=arr[i]/128-1;s+=v*v;}return Math.sqrt(s/arr.length);}
 function yieldBrowser(){return new Promise(r=>setTimeout(r,0));}
+
+// ── Settings persistence ──────────────────────────────────────
+const SETTINGS_KEY='multiwave-settings-v1';
+function saveSettings(){
+  try{
+    const s={
+      color1,color2,color3,colorGrat,
+      ampBase,glowBase,intensityBase,spikesBase,colorBlend,vertBase,
+      graticuleAmt,gridDiv,imgBlend,flareSpeedBase,
+      fadeInSec,fadeOutSec,
+      activeModes:[...activeModes],sunburst,mirrorMode,rotate90,
+      imgBehind,imgEffects,
+      modeParams,fmt,
+      lfos:lfos.map(l=>({shape:l.shape,rate:l.rate,depth:l.depth,
+        targets:[...l.targets],sync:l.sync,syncBeats:l.syncBeats,enabled:l.enabled})),
+    };
+    localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
+  }catch(e){console.warn('save settings failed',e);}
+}
+function loadSettings(){
+  try{
+    const raw=localStorage.getItem(SETTINGS_KEY);
+    if(!raw) return false;
+    const s=JSON.parse(raw);
+    if(s.color1){color1=s.color1;cpk1.value=color1;document.documentElement.style.setProperty('--glow',color1);}
+    if(s.color2){color2=s.color2;cpk2.value=color2;}
+    if(s.color3){color3=s.color3;cpk3.value=color3;}
+    if(s.colorGrat){colorGrat=s.colorGrat;cpkGrat.value=colorGrat;}
+    if(typeof s.ampBase==='number'){ampBase=s.ampBase;sAmp.value=Math.round(ampBase*100);}
+    if(typeof s.glowBase==='number'){glowBase=s.glowBase;sGlo.value=Math.round(glowBase*100);}
+    if(typeof s.intensityBase==='number'){intensityBase=s.intensityBase;sInt.value=Math.round(intensityBase*100);}
+    if(typeof s.spikesBase==='number'){spikesBase=s.spikesBase;sSpk.value=Math.round(spikesBase*100);}
+    if(typeof s.colorBlend==='number'){colorBlend=s.colorBlend;sBld.value=Math.round(colorBlend*100);}
+    if(typeof s.vertBase==='number'){vertBase=s.vertBase;sVert.value=Math.round(vertBase*100);}
+    if(typeof s.graticuleAmt==='number'){graticuleAmt=s.graticuleAmt;sGrat.value=Math.round(graticuleAmt*100);}
+    if(typeof s.gridDiv==='number'){gridDiv=s.gridDiv;selGrid.value=gridDiv;}
+    if(typeof s.imgBlend==='number'){imgBlend=s.imgBlend;sImgBld.value=Math.round(imgBlend*100);}
+    if(typeof s.flareSpeedBase==='number'){flareSpeedBase=s.flareSpeedBase;sFlr.value=Math.round(flareSpeedBase*100);}
+    if(typeof s.fadeInSec==='number'){fadeInSec=s.fadeInSec;fiSec.value=fadeInSec;}
+    if(typeof s.fadeOutSec==='number'){fadeOutSec=s.fadeOutSec;foSec.value=fadeOutSec;}
+    if(Array.isArray(s.activeModes)&&s.activeModes.length){
+      activeModes=new Set(s.activeModes);
+      modeBtnsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',activeModes.has(b.dataset.mode)));
+    }
+    if(typeof s.sunburst==='boolean'){sunburst=s.sunburst;fxSun.classList.toggle('active',sunburst);}
+    if(typeof s.mirrorMode==='boolean'){mirrorMode=s.mirrorMode;btnMirror.classList.toggle('active',mirrorMode);}
+    if(typeof s.rotate90==='boolean'){rotate90=s.rotate90;btnRot.classList.toggle('active',rotate90);}
+    if(typeof s.imgBehind==='boolean'){imgBehind=s.imgBehind;imgPosBg.classList.toggle('active',imgBehind);imgPosOv.classList.toggle('active',!imgBehind);}
+    if(typeof s.imgEffects==='boolean'){imgEffects=s.imgEffects;btnImgFx.classList.toggle('active',imgEffects);}
+    if(s.modeParams){for(const m of MODE_NAMES) if(s.modeParams[m]) Object.assign(modeParams[m],s.modeParams[m]);}
+    if(s.fmt&&FORMATS[s.fmt]) setFmt(s.fmt);
+    if(Array.isArray(s.lfos)){
+      s.lfos.forEach((sl,i)=>{
+        if(!lfos[i]) return;
+        if(sl.shape) lfos[i].shape=sl.shape;
+        if(typeof sl.rate==='number') lfos[i].rate=sl.rate;
+        if(typeof sl.depth==='number') lfos[i].depth=sl.depth;
+        if(Array.isArray(sl.targets)) lfos[i].targets=new Set(sl.targets);
+        if(typeof sl.sync==='boolean') lfos[i].sync=sl.sync;
+        if(typeof sl.syncBeats==='number') lfos[i].syncBeats=sl.syncBeats;
+        if(typeof sl.enabled==='boolean') lfos[i].enabled=sl.enabled;
+      });
+      buildLFOPanels(); // rebuild to reflect loaded state
+    }
+    return true;
+  }catch(e){console.warn('load settings failed',e);return false;}
+}
+// Auto-save: debounced 300ms after any change
+let _saveTimer=null;
+function scheduleSave(){clearTimeout(_saveTimer);_saveTimer=setTimeout(saveSettings,300);}
 function get3Color(blend){
   const c1=hexToRgb(color1),c2=hexToRgb(color2),c3=hexToRgb(color3);
   return blend<=0.5?blendRgb(c1,c2,blend*2):blendRgb(c2,c3,(blend-0.5)*2);
@@ -542,6 +612,7 @@ modeBtnsEl.querySelectorAll('button').forEach(b=>{
     if(activeModes.has(m)){if(activeModes.size>1){activeModes.delete(m);b.classList.remove('active');}}
     else{activeModes.add(m);b.classList.add('active');}
     updateModeParamPanels();
+    scheduleSave();
   });
 });
 
@@ -563,6 +634,7 @@ function buildModeParamPanels(){
       sl.addEventListener('input',()=>{
         const v=sl.value/100;
         modeParams[sl.dataset.mode][sl.dataset.p]=v;
+        scheduleSave();
       });
     });
     modeParamsEl.appendChild(row);
@@ -641,8 +713,14 @@ function buildLFOPanels(){
       if(lfo.targets.has(b.dataset.v)) b.classList.add('active');
       b.addEventListener('click',()=>{
         const v=b.dataset.v;
-        if(lfo.targets.has(v)){if(lfo.targets.size>1){lfo.targets.delete(v);b.classList.remove('active');}}
-        else{lfo.targets.add(v);b.classList.add('active');}
+        if(lfo.targets.has(v)){
+          lfo.targets.delete(v);
+          b.classList.remove('active');
+        } else {
+          lfo.targets.add(v);
+          b.classList.add('active');
+        }
+        scheduleSave();
       });
     });
     panel.querySelectorAll('.lfo-shapes button').forEach(b=>{
@@ -650,27 +728,29 @@ function buildLFOPanels(){
         lfo.shape=b.dataset.v;
         panel.querySelectorAll('.lfo-shapes button').forEach(x=>x.classList.remove('active'));
         b.classList.add('active');
+        scheduleSave();
       });
     });
     $(`len${i}`).addEventListener('click',()=>{
       lfo.enabled=!lfo.enabled;
       $(`len${i}`).classList.toggle('active',lfo.enabled);
       $(`len${i}`).textContent=lfo.enabled?'on':'off';
+      scheduleSave();
     });
-    const rateSlider=$(`lrs${i}`);
-    const rateNum=$(`lr${i}`);
+    let rateSlider=$(`lrs${i}`);
+    let rateNum=$(`lr${i}`);
     // Slider → number (logarithmic)
     if(rateSlider) rateSlider.addEventListener('input',()=>{
       const hz=sliderToRate(parseInt(rateSlider.value));
-      lfo.rate=hz; if(rateNum) rateNum.value=hz.toFixed(2);
+      lfo.rate=hz; if(rateNum) rateNum.value=hz.toFixed(2); scheduleSave();
     });
     // Number → slider
     if(rateNum) rateNum.addEventListener('input',()=>{
       const hz=Math.max(0.01,Math.min(30,parseFloat(rateNum.value)||0.5));
-      lfo.rate=hz; if(rateSlider) rateSlider.value=rateToSlider(hz);
+      lfo.rate=hz; if(rateSlider) rateSlider.value=rateToSlider(hz); scheduleSave();
     });
-    $(`ld${i}`).addEventListener('input',()=>{lfo.depth=$(`ld${i}`).value/100;});
-    $(`lsdiv${i}`).addEventListener('change',()=>{lfo.syncBeats=parseFloat($(`lsdiv${i}`).value);});
+    $(`ld${i}`).addEventListener('input',()=>{lfo.depth=$(`ld${i}`).value/100;scheduleSave();});
+    $(`lsdiv${i}`).addEventListener('change',()=>{lfo.syncBeats=parseFloat($(`lsdiv${i}`).value);scheduleSave();});
     $(`lsync${i}`).addEventListener('click',()=>{
       lfo.sync=!lfo.sync;
       $(`lsync${i}`).classList.toggle('active',lfo.sync);
@@ -679,6 +759,7 @@ function buildLFOPanels(){
       if($(`lrs${i}`)) $(`lrs${i}`).disabled=lfo.sync;
       const freeRow=$(`lrate-free${i}`);
       if(freeRow) freeRow.style.opacity=lfo.sync?'0.35':'1';
+      scheduleSave();
     });
   });
 }
@@ -708,10 +789,10 @@ function drawLFOViz(lfo,i){
 }
 
 // ── Controls wiring ───────────────────────────────────────────
-cpk1.addEventListener('input',()=>{color1=cpk1.value;document.documentElement.style.setProperty('--glow',color1);});
-cpk2.addEventListener('input',()=>{color2=cpk2.value;});
-cpk3.addEventListener('input',()=>{color3=cpk3.value;});
-cpkGrat.addEventListener('input',()=>{colorGrat=cpkGrat.value;});
+cpk1.addEventListener('input',()=>{color1=cpk1.value;document.documentElement.style.setProperty('--glow',color1);scheduleSave();});
+cpk2.addEventListener('input',()=>{color2=cpk2.value;scheduleSave();});
+cpk3.addEventListener('input',()=>{color3=cpk3.value;scheduleSave();});
+cpkGrat.addEventListener('input',()=>{colorGrat=cpkGrat.value;scheduleSave();});
 // ── Collapsible sections (click title to toggle) ─────────────
 document.querySelectorAll('.sect-title').forEach(title=>{
   title.addEventListener('click',()=>{
@@ -760,25 +841,25 @@ function activateLiveUI(){
 const togBg=$('tog-bg');
 togBg.addEventListener('change',()=>{
   BG=togBg.checked?'#FFFFFF':'#060c14';
-  // UI stays dark — only clear the canvas
   cx.fillStyle=BG;cx.fillRect(0,0,CW,CH);
+  scheduleSave();
 });
-sAmp.addEventListener('input',()=>{ampBase=sAmp.value/100;});
-sGlo.addEventListener('input',()=>{glowBase=sGlo.value/100;});
-sInt.addEventListener('input',()=>{intensityBase=sInt.value/100;});
-sVert.addEventListener('input',()=>{vertBase=sVert.value/100;});
-sSpk.addEventListener('input',()=>{spikesBase=sSpk.value/100;});
-sFlr.addEventListener('input',()=>{flareSpeedBase=sFlr.value/100;});
-sBld.addEventListener('input',()=>{colorBlend=sBld.value/100;});
-sGrat.addEventListener('input',()=>{graticuleAmt=sGrat.value/100;});
-sImgBld.addEventListener('input',()=>{imgBlend=sImgBld.value/100;});
-selGrid.addEventListener('change',()=>{gridDiv=parseInt(selGrid.value);});
-fiSec.addEventListener('input',()=>{fadeInSec=parseFloat(fiSec.value)||0;});
-foSec.addEventListener('input',()=>{fadeOutSec=parseFloat(foSec.value)||0;});
-fxSun.addEventListener('click',()=>{sunburst=!sunburst;fxSun.classList.toggle('active',sunburst);if(!sunburst)flares=[];});
-btnMirror.addEventListener('click',()=>{mirrorMode=!mirrorMode;btnMirror.classList.toggle('active',mirrorMode);});
-btnRot.addEventListener('click',()=>{rotate90=!rotate90;btnRot.classList.toggle('active',rotate90);});
-fmtL.addEventListener('click',()=>setFmt('l'));fmtSq.addEventListener('click',()=>setFmt('sq'));fmtP.addEventListener('click',()=>setFmt('p'));
+sAmp.addEventListener('input',()=>{ampBase=sAmp.value/100;scheduleSave();});
+sGlo.addEventListener('input',()=>{glowBase=sGlo.value/100;scheduleSave();});
+sInt.addEventListener('input',()=>{intensityBase=sInt.value/100;scheduleSave();});
+sVert.addEventListener('input',()=>{vertBase=sVert.value/100;scheduleSave();});
+sSpk.addEventListener('input',()=>{spikesBase=sSpk.value/100;scheduleSave();});
+sFlr.addEventListener('input',()=>{flareSpeedBase=sFlr.value/100;scheduleSave();});
+sBld.addEventListener('input',()=>{colorBlend=sBld.value/100;scheduleSave();});
+sGrat.addEventListener('input',()=>{graticuleAmt=sGrat.value/100;scheduleSave();});
+sImgBld.addEventListener('input',()=>{imgBlend=sImgBld.value/100;scheduleSave();});
+selGrid.addEventListener('change',()=>{gridDiv=parseInt(selGrid.value);scheduleSave();});
+fiSec.addEventListener('input',()=>{fadeInSec=parseFloat(fiSec.value)||0;scheduleSave();});
+foSec.addEventListener('input',()=>{fadeOutSec=parseFloat(foSec.value)||0;scheduleSave();});
+fxSun.addEventListener('click',()=>{sunburst=!sunburst;fxSun.classList.toggle('active',sunburst);if(!sunburst)flares=[];scheduleSave();});
+btnMirror.addEventListener('click',()=>{mirrorMode=!mirrorMode;btnMirror.classList.toggle('active',mirrorMode);scheduleSave();});
+btnRot.addEventListener('click',()=>{rotate90=!rotate90;btnRot.classList.toggle('active',rotate90);scheduleSave();});
+fmtL.addEventListener('click',()=>{setFmt('l');scheduleSave();});fmtSq.addEventListener('click',()=>{setFmt('sq');scheduleSave();});fmtP.addEventListener('click',()=>{setFmt('p');scheduleSave();});
 btnImg.addEventListener('click',()=>{ imgFi.value=''; imgFi.click(); });
 imgFi.addEventListener('change',function(){
   const f=this.files&&this.files[0];
@@ -800,9 +881,9 @@ imgFi.addEventListener('change',function(){
   reader.readAsDataURL(f); // DataURL werkt betrouwbaarder dan ObjectURL cross-origin
 });
 btnImgClear.addEventListener('click',()=>{imgEl=null;clearImgCache();btnImgClear.disabled=true;imgFi.value='';imgName.textContent='';});
-imgPosBg.addEventListener('click',()=>{imgBehind=true;imgPosBg.classList.add('active');imgPosOv.classList.remove('active');});
-imgPosOv.addEventListener('click',()=>{imgBehind=false;imgPosOv.classList.add('active');imgPosBg.classList.remove('active');});
-btnImgFx.addEventListener('click',()=>{imgEffects=!imgEffects;btnImgFx.classList.toggle('active',imgEffects);});
+imgPosBg.addEventListener('click',()=>{imgBehind=true;imgPosBg.classList.add('active');imgPosOv.classList.remove('active');scheduleSave();});
+imgPosOv.addEventListener('click',()=>{imgBehind=false;imgPosOv.classList.add('active');imgPosBg.classList.remove('active');scheduleSave();});
+btnImgFx.addEventListener('click',()=>{imgEffects=!imgEffects;btnImgFx.classList.toggle('active',imgEffects);scheduleSave();});
 // File picker — programmatic click so Android opens Files app not media picker
 
 // File picker — fresh DOM input on mobile so Android shows Files app, not media picker
@@ -1307,10 +1388,8 @@ async function recordFile(){
   const bufSize=4096;
   const sp=AC.createScriptProcessor(bufSize,nCh,nCh);
   src.connect(sp); sp.connect(AC.destination);
-  // Also still feed analyser to destination for visualization (already connected via src→analyser→...)
-  // Note: src→analyser is connected but analyser is NOT connected to destination here,
-  // so audio playback only goes through sp (with fade). Visual still works because
-  // analyser receives the unfaded signal via src→analyser path.
+  // Reuse a single buffer to avoid GC pressure during recording
+  const audioBufReuse=new Float32Array(nCh*bufSize);
 
   const duration=trimEnd-trimStart;
   let stopRequestedAt=null; // performance.now() when Stop pressed (or natural-end fade start)
@@ -1348,8 +1427,8 @@ async function recordFile(){
     const inBuf=e.inputBuffer, outBuf=e.outputBuffer;
     const inChs=inBuf.numberOfChannels;
     const elapsed=audioTS/1_000_000;
-    // Build planar f32 data for encoding
-    const data=new Float32Array(nCh*bufSize);
+    // Reuse Float32Array to avoid per-callback allocation (prevents GC stalls)
+    const data=audioBufReuse;
     let allSilent=true;
     for(let ch=0;ch<nCh;ch++){
       const inCh=inBuf.getChannelData(Math.min(ch,inChs-1));
@@ -1364,7 +1443,8 @@ async function recordFile(){
       }
     }
     try{
-      const ad=new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:bufSize,numberOfChannels:nCh,timestamp:audioTS,data});
+      // Copy data because AudioData transfers buffer ownership
+      const ad=new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:bufSize,numberOfChannels:nCh,timestamp:audioTS,data:data.slice()});
       audioEnc.encode(ad); ad.close();
     }catch(err){ console.warn('Audio encode',err); }
     audioTS+=(bufSize/sr)*1_000_000;
