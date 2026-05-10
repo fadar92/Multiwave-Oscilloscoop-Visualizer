@@ -139,7 +139,14 @@ select.sel:disabled{opacity:.3;}
   </div>
 </div>
 
-<!-- ── Record (above visuals) ─────────────────────────── -->
+<!-- Trim / fragment selection — above the canvas -->
+<div id="trim-sect">
+  <div class="trim-hdr"><span>fragment selection</span><span id="trim-dur"></span></div>
+  <canvas id="trim-cv" height="36"></canvas>
+  <div class="trim-times"><span>▶ <b id="t-start">0:00</b></span><span><b id="t-end">0:00</b> ◀</span></div>
+</div>
+
+<!-- ── Record ─────────────────────────────────────────── -->
 <div class="sect-block">
   <div class="sect-title">Record</div>
   <div class="sect-body">
@@ -161,21 +168,34 @@ select.sel:disabled{opacity:.3;}
   </div>
 </div>
 
+<!-- Live canvas -->
 <div id="canvas-wrap" class="landscape">
   <canvas id="cv"></canvas>
   <button id="fs-btn">⛶</button>
 </div>
 
-<!-- Trim directly below canvas -->
-<div id="trim-sect">
-  <div class="trim-hdr"><span>fragment selectie</span><span id="trim-dur"></span></div>
-  <canvas id="trim-cv" height="36"></canvas>
-  <div class="trim-times"><span>▶ <b id="t-start">0:00</b></span><span><b id="t-end">0:00</b> ◀</span></div>
-</div>
-
 <div id="controls">
 
-  <!-- ── Colour ─────────────────────────────────────────────── -->
+  <!-- ── Image ──────────────────────────────────────────── -->
+  <div class="sect-block">
+    <div class="sect-title">Image</div>
+    <div class="sect-body">
+      <div class="row">
+        <button id="btn-img">⊕ load</button>
+        <input type="file" id="img-fi" accept="image/*" style="display:none;">
+        <button id="btn-img-clear" disabled>✕</button>
+        <span class="lbl" id="img-name" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <span class="lbl">blend</span><input type="range" id="s-imgbld" min="0" max="100" value="60">
+        <div class="tgl">
+          <button id="img-pos-bg" class="active">behind</button>
+          <button id="img-pos-ov">front</button>
+        </div>
+        <button id="btn-img-fx">✦ effect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Colour & Canvas Background ─────────────────────── -->
   <div class="sect-block">
     <div class="sect-title">Colour &amp; Canvas Background</div>
     <div class="sect-body">
@@ -194,22 +214,29 @@ select.sel:disabled{opacity:.3;}
     </div>
   </div>
 
-  <!-- ── Visualisation ──────────────────────────────────────── -->
+  <!-- ── Visualisation (now includes graticule + strobe + wave-in-circle) -->
   <div class="sect-block">
     <div class="sect-title">Visualisation</div>
     <div class="sect-body">
+      <!-- Mode selector + transforms -->
       <div class="row">
         <span class="lbl">mode</span>
         <div class="tgl" id="mode-btns">
           <button data-mode="wave" class="active">Wave</button>
           <button data-mode="spectrum">Spectrum</button>
-          <button data-mode="circular">Cirkel</button>
+          <button data-mode="circular">Circle</button>
+          <button data-mode="wavecircle">Wave-Circle</button>
           <button data-mode="phase">Phase</button>
         </div>
+      </div>
+      <!-- FX toggles -->
+      <div class="row">
         <button id="fx-sun" title="Solar flares">☀ Flares</button>
         <button id="btn-mirror">⇅ Mirror</button>
         <button id="btn-rot">↻ 90°</button>
+        <button id="fx-strobe" title="Strobe effect">⚡ Strobe</button>
       </div>
+      <!-- Global params -->
       <div class="row">
         <span class="lbl">amp</span><input type="range" id="s-amp" min="1" max="100" value="22">
         <span class="lbl">glow</span><input type="range" id="s-glo" min="0" max="100" value="55">
@@ -218,37 +245,17 @@ select.sel:disabled{opacity:.3;}
         <span class="lbl">spikes</span><input type="range" id="s-spk" min="0" max="100" value="0">
         <span class="lbl">flare speed</span><input type="range" id="s-flr" min="1" max="100" value="25">
       </div>
-    </div>
-  </div>
-
-  <!-- ── Graticule ─────────────────────────────────────────── -->
-  <div class="sect-block">
-    <div class="sect-title">Graticule</div>
-    <div class="sect-body">
+      <!-- Strobe params -->
+      <div class="row" id="strobe-row" style="display:none;">
+        <span class="lbl">strobe intensity</span><input type="range" id="s-strobe-int" min="0" max="100" value="60">
+        <span class="lbl">strobe speed</span><input type="range" id="s-strobe-spd" min="1" max="100" value="40">
+      </div>
+      <!-- Graticule -->
       <div class="row">
-        <span class="lbl">opacity</span><input type="range" id="s-grat" min="0" max="100" value="0">
+        <span class="lbl">graticule</span><input type="range" id="s-grat" min="0" max="100" value="0">
         <span class="lbl">grid</span>
         <select class="sel" id="sel-grid"><option value="6">6</option><option value="8">8</option><option value="10" selected>10</option><option value="12">12</option></select>
         <div class="cpk-wrap"><span class="lbl">colour</span><input type="color" class="cpk" id="cpk-grat" value="#334455"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Image ────────────────────────────────────────── -->
-  <div class="sect-block">
-    <div class="sect-title">Image</div>
-    <div class="sect-body">
-      <div class="row">
-        <button id="btn-img">⊕ load</button>
-        <input type="file" id="img-fi" accept="image/*" style="display:none;">
-        <button id="btn-img-clear" disabled>✕</button>
-        <span class="lbl" id="img-name" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <span class="lbl">blend</span><input type="range" id="s-imgbld" min="0" max="100" value="60">
-        <div class="tgl">
-          <button id="img-pos-bg" class="active">behind</button>
-          <button id="img-pos-ov">front</button>
-        </div>
-        <button id="btn-img-fx">✦ effect</button>
       </div>
     </div>
   </div>
@@ -307,12 +314,13 @@ select.sel:disabled{opacity:.3;}
 const FPS=30, FRAME_US=Math.round(1_000_000/FPS);
 let BG='#060c14'; // mutable — toggles between dark/light
 const FORMATS={l:{w:1280,h:720,cls:'landscape'},sq:{w:1080,h:1350,cls:'square'},p:{w:1080,h:1920,cls:'portrait'}};
-const MODE_NAMES=['wave','spectrum','circular','phase'];
-const LFO_TARGETS_MAIN=['amp','glow','intensity','gravity','spikes','blend','graticule','imgBlend'];
+const MODE_NAMES=['wave','spectrum','circular','wavecircle','phase'];
+const LFO_TARGETS_MAIN=['amp','glow','intensity','gravity','spikes','blend','graticule','imgBlend','strobeInt','strobeSpd'];
 const LFO_TARGETS_MODE=[
   'wave.amp','wave.glow','wave.intensity','wave.gravity',
   'spec.amp','spec.glow','spec.intensity','spec.gravity',
   'circ.amp','circ.glow','circ.intensity','circ.gravity',
+  'wcirc.amp','wcirc.glow','wcirc.intensity','wcirc.gravity',
   'phase.amp','phase.glow','phase.intensity','phase.gravity'];
 const LFO_TARGETS=[...LFO_TARGETS_MAIN,...LFO_TARGETS_MODE];
 
@@ -397,6 +405,8 @@ let ampBase=0.22,glowBase=0.55,intensityBase=0.80,spikesBase=0,colorBlend=0,vert
 let graticuleAmt=0,gridDiv=10,imgBlend=0.6,flareSpeedBase=0.25;
 let fadeInSec=0,fadeOutSec=0;
 let activeModes=new Set(['wave']),sunburst=false,mirrorMode=false,rotate90=false;
+let strobeOn=false, strobeIntBase=0.6, strobeSpdBase=0.4;
+let strobePhase=0, strobeFlash=0; // 0–1, the current strobe brightness
 let imgBehind=true,imgEffects=false,imgEl=null;
 let inputSource='file'; // 'file'|'mic'|'system'|'both'
 let detectedBPM=0;
@@ -416,16 +426,17 @@ let perfMode=false;             // auto-detected low-end device
 
 // Per-mode params (multipliers: 1.0 = same as global)
 const modeParams={
-  wave:     {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
-  spectrum: {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
-  circular: {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
-  phase:    {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
+  wave:       {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
+  spectrum:   {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
+  circular:   {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
+  wavecircle: {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
+  phase:      {amp:1,glow:1,intensity:1,gravity:1,opacity:1},
 };
 
 const lfos=[new LFO(0.5,0.3,['amp']), new LFO(0.13,0.2,['blend'])];
 
 // Computed frame values (global)
-const G={r:255,g2:34,b:0,gStr:'#ff2200',amp:.22,glow:.55,intensity:.8,gravity:1,spk:0,blend:0,graticule:0,imgBlend:.6,flrSpd:.25};
+const G={r:255,g2:34,b:0,gStr:'#ff2200',amp:.22,glow:.55,intensity:.8,gravity:1,spk:0,blend:0,graticule:0,imgBlend:.6,flrSpd:.25,strobeInt:.6,strobeSpd:.4};
 
 // ── Elements ──────────────────────────────────────────────────
 const $=id=>document.getElementById(id);
@@ -434,7 +445,8 @@ const dropZone=$('drop-zone'),fi=$('fi'),controls=$('controls');
 const btnRec=$('btn-rec'),btnStop=$('btn-stop');
 const fmtL=$('fmt-l'),fmtSq=$('fmt-sq'),fmtP=$('fmt-p');
 const modeBtnsEl=$('mode-btns');
-const fxSun=$('fx-sun'),btnMirror=$('btn-mirror'),btnRot=$('btn-rot');
+const fxSun=$('fx-sun'),btnMirror=$('btn-mirror'),btnRot=$('btn-rot'),fxStrobe=$('fx-strobe');
+const sStrobeInt=$('s-strobe-int'),sStrobeSpd=$('s-strobe-spd'),strobeRow=$('strobe-row');
 const sAmp=$('s-amp'),sGlo=$('s-glo'),sInt=$('s-int'),sVert=$('s-vert');
 const sSpk=$('s-spk'),sFlr=$('s-flr'),sBld=$('s-bld'),sGrat=$('s-grat'),sImgBld=$('s-imgbld');
 const selGrid=$('sel-grid'),cpkGrat=$('cpk-grat');
@@ -474,6 +486,7 @@ function saveSettings(){
       graticuleAmt,gridDiv,imgBlend,flareSpeedBase,
       fadeInSec,fadeOutSec,
       activeModes:[...activeModes],sunburst,mirrorMode,rotate90,
+      strobeOn,strobeIntBase,strobeSpdBase,
       imgBehind,imgEffects,
       modeParams,fmt,
       lfos:lfos.map(l=>({shape:l.shape,rate:l.rate,depth:l.depth,
@@ -510,6 +523,13 @@ function loadSettings(){
     if(typeof s.sunburst==='boolean'){sunburst=s.sunburst;fxSun.classList.toggle('active',sunburst);}
     if(typeof s.mirrorMode==='boolean'){mirrorMode=s.mirrorMode;btnMirror.classList.toggle('active',mirrorMode);}
     if(typeof s.rotate90==='boolean'){rotate90=s.rotate90;btnRot.classList.toggle('active',rotate90);}
+    if(typeof s.strobeOn==='boolean'){
+      strobeOn=s.strobeOn;
+      if(fxStrobe) fxStrobe.classList.toggle('active',strobeOn);
+      if(strobeRow) strobeRow.style.display=strobeOn?'flex':'none';
+    }
+    if(typeof s.strobeIntBase==='number'){strobeIntBase=s.strobeIntBase;sStrobeInt.value=Math.round(strobeIntBase*100);}
+    if(typeof s.strobeSpdBase==='number'){strobeSpdBase=s.strobeSpdBase;sStrobeSpd.value=Math.round(strobeSpdBase*100);}
     if(typeof s.imgBehind==='boolean'){imgBehind=s.imgBehind;imgPosBg.classList.toggle('active',imgBehind);imgPosOv.classList.toggle('active',!imgBehind);}
     if(typeof s.imgEffects==='boolean'){imgEffects=s.imgEffects;btnImgFx.classList.toggle('active',imgEffects);}
     if(s.modeParams){for(const m of MODE_NAMES) if(s.modeParams[m]) Object.assign(modeParams[m],s.modeParams[m]);}
@@ -567,6 +587,18 @@ function updateG(dt){
   G.graticule=clamp01(graticuleAmt+getLFOMod('graticule'));
   G.imgBlend=clamp01(imgBlend+getLFOMod('imgBlend'));
   G.flrSpd=clamp01(flareSpeedBase+getLFOMod('flrSpd'));
+  G.strobeInt=clamp01(strobeIntBase+getLFOMod('strobeInt'));
+  G.strobeSpd=clamp01(strobeSpdBase+getLFOMod('strobeSpd'));
+  // Strobe phase update (0.5–25 Hz mapped from 0–1 slider)
+  if(strobeOn){
+    const hz=0.5+G.strobeSpd*24.5;
+    strobePhase+=dt*hz;
+    if(strobePhase>=1) strobePhase-=Math.floor(strobePhase);
+    // Square wave — half cycle on, half off, with intensity shaping
+    strobeFlash=(strobePhase<0.5?1:0)*G.strobeInt;
+  } else {
+    strobeFlash=0;
+  }
   const bc=get3Color(G.blend);G.r=bc.r;G.g2=bc.g;G.b=bc.b;G.gStr=rgbStr(bc);
 }
 
@@ -583,7 +615,7 @@ function mp(mode,param){
 function getModeP(modeName){
   // Auto-perf: if multiple modes active, use lighter rendering
   const multiMode = activeModes.size > 1;
-  const pfx={wave:'wave',spectrum:'spec',circular:'circ',phase:'phase'}[modeName];
+  const pfx={wave:'wave',spectrum:'spec',circular:'circ',wavecircle:'wcirc',phase:'phase'}[modeName];
   return{
     amp:      clamp01(G.amp*modeParams[modeName].amp + getLFOMod(pfx+'.amp')),
     glow:     clamp01(G.glow*modeParams[modeName].glow + getLFOMod(pfx+'.glow')),
@@ -617,7 +649,7 @@ modeBtnsEl.querySelectorAll('button').forEach(b=>{
 });
 
 // ── Per-mode param panels ─────────────────────────────────────
-const MODE_LABELS={wave:'Wave',spectrum:'Spectrum',circular:'Circle',phase:'Phase'};
+const MODE_LABELS={wave:'Wave',spectrum:'Spectrum',circular:'Circle',wavecircle:'Wave-Circle',phase:'Phase'};
 function buildModeParamPanels(){
   modeParamsEl.innerHTML='';
   for(const m of MODE_NAMES){
@@ -857,6 +889,15 @@ selGrid.addEventListener('change',()=>{gridDiv=parseInt(selGrid.value);scheduleS
 fiSec.addEventListener('input',()=>{fadeInSec=parseFloat(fiSec.value)||0;scheduleSave();});
 foSec.addEventListener('input',()=>{fadeOutSec=parseFloat(foSec.value)||0;scheduleSave();});
 fxSun.addEventListener('click',()=>{sunburst=!sunburst;fxSun.classList.toggle('active',sunburst);if(!sunburst)flares=[];scheduleSave();});
+fxStrobe.addEventListener('click',()=>{
+  strobeOn=!strobeOn;
+  fxStrobe.classList.toggle('active',strobeOn);
+  if(strobeRow) strobeRow.style.display=strobeOn?'flex':'none';
+  if(!strobeOn) strobeFlash=0;
+  scheduleSave();
+});
+sStrobeInt.addEventListener('input',()=>{strobeIntBase=sStrobeInt.value/100;scheduleSave();});
+sStrobeSpd.addEventListener('input',()=>{strobeSpdBase=sStrobeSpd.value/100;scheduleSave();});
 btnMirror.addEventListener('click',()=>{mirrorMode=!mirrorMode;btnMirror.classList.toggle('active',mirrorMode);scheduleSave();});
 btnRot.addEventListener('click',()=>{rotate90=!rotate90;btnRot.classList.toggle('active',rotate90);scheduleSave();});
 fmtL.addEventListener('click',()=>{setFmt('l');scheduleSave();});fmtSq.addEventListener('click',()=>{setFmt('sq');scheduleSave();});fmtP.addEventListener('click',()=>{setFmt('p');scheduleSave();});
@@ -1182,6 +1223,33 @@ function drawCircular(td,fd,p){
   endCircleCorrect();
 }
 
+// ── Draw: wave-in-circle — waveform shaped as a closed circular loop ──
+function drawWaveCircle(td,p){
+  const cx0=CW/2,cy0=CH/2,minD=Math.min(CW,CH),baseR=minD*0.28,gi=p.glow;
+  beginCircleCorrect(cx0,cy0);
+  cx.save();cx.globalAlpha=p.intensity*p.opacity;
+  const step=Math.max(1,Math.floor(td.length/(p.perf?256:480)));
+  const wMaxR=baseR*0.65*p.amp*3*p.gravity;
+  const passes=p.perf?
+    [{lw:5,a:.04*gi,bl:18*gi},{lw:.8,a:1,bl:0}]:
+    [{lw:14,a:.005*gi,bl:55*gi},{lw:5,a:.04*gi,bl:18*gi},{lw:.8,a:1,bl:2*gi}];
+  for(const ps of passes){
+    cx.beginPath();cx.lineWidth=ps.lw;cx.strokeStyle=`rgba(${G.r},${G.g2},${G.b},${ps.a})`;
+    cx.shadowColor=G.gStr;cx.shadowBlur=ps.bl;cx.lineJoin='round';cx.lineCap='round';
+    let first=true;
+    for(let i=0;i<td.length;i+=step){
+      const angle=(i/td.length)*Math.PI*2-Math.PI/2;
+      const dev=Math.tanh((td[i]/128-1)*2.2)*wMaxR;
+      const rad=baseR+dev;
+      const x=cx0+Math.cos(angle)*rad, y=cy0+Math.sin(angle)*rad;
+      first?cx.moveTo(x,y):cx.lineTo(x,y);first=false;
+    }
+    cx.closePath();cx.stroke();
+  }
+  cx.restore();cx.shadowBlur=0;
+  endCircleCorrect();
+}
+
 // ── Draw: phase scope ─────────────────────────────────────────
 function drawPhase(lData,rData,p){
   const cx0=CW/2,cy0=CH/2,scale=Math.min(CW,CH)*0.40*p.amp*2.8*p.gravity,gi=p.glow,len=Math.min(lData.length,rData.length);
@@ -1300,6 +1368,7 @@ function renderFrame(tArr,fArr,lArr,rArr,energy,fade,dt){
   if(activeModes.has('wave')) drawWave(tArr,getModeP('wave'));
   if(activeModes.has('spectrum')) drawSpectrum(fArr,getModeP('spectrum'));
   if(activeModes.has('circular')) drawCircular(tArr,fArr,getModeP('circular'));
+  if(activeModes.has('wavecircle')) drawWaveCircle(tArr,getModeP('wavecircle'));
   if(activeModes.has('phase')) drawPhase(lArr,rArr,getModeP('phase'));
   // Spikes blend across all active modes
   if(G.spk>0) drawSpikes(energy,getModeP([...activeModes][0]));
@@ -1313,9 +1382,17 @@ function renderFrame(tArr,fArr,lArr,rArr,energy,fade,dt){
   drawGraticule();
   // 6. Mirror
   if(mirrorMode) applyMirror();
-  // 7. Fade
+  // 7. Strobe overlay (white/black flash)
+  if(strobeOn && strobeFlash>0.01){
+    const useBlack = BG === '#FFFFFF';
+    cx.fillStyle = useBlack
+      ? `rgba(0,0,0,${strobeFlash.toFixed(3)})`
+      : `rgba(255,255,255,${strobeFlash.toFixed(3)})`;
+    cx.fillRect(0,0,CW,CH);
+  }
+  // 8. Fade
   if(fade<0.999){cx.fillStyle=`rgba(6,12,20,${(1-fade).toFixed(3)})`;cx.fillRect(0,0,CW,CH);}
-  // 8. LFO viz — throttled (not every frame)
+  // 9. LFO viz — throttled (not every frame)
   lfoVizTimer+=dt*1000;
   if(lfoVizTimer>=LFO_VIZ_INTERVAL){ lfoVizTimer=0; lfos.forEach((_,i)=>drawLFOViz(_,i)); }
 }
